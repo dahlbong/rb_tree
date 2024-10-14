@@ -50,15 +50,14 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
   else if (key < y->key) y->left = cur;
   else y->right = cur;
   rbtree_insert_fixup(t, cur->key);
-  
+
   return t->root;     //속성유지
 }
 
 //불균형 복구
-void *rbtree_insert_fixup(rbtree *t, const key_t *key) {
+void *rbtree_insert_fixup(rbtree *t, const key_t key) {
 
   node_t *insert = rbtree_find(t, key);
-  if (insert == NULL) return;
   node_t *uncle;
 
   // 부모노드가 BLACK 될때까지 반복
@@ -150,14 +149,11 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
   node_t * cur = t->root;
 
   while (cur != t->nil) {
-    if (cur->key == key)
-      return cur;
-
+    if (cur->key == key) return cur;
     if (cur->key < key) cur = cur->right;
     else cur = cur->left;
   }
-
-  return t->root;
+  return NULL;
 }
 
 node_t *rbtree_min(const rbtree *t) {
