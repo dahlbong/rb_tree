@@ -4,7 +4,9 @@
 
 rbtree *new_rbtree(void) {
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
-  // TODO: initialize struct if needed
+  node_t *nil = (node_t*)calloc(1, sizeof(node_t));
+  nil->color = RBTREE_BLACK;
+  p->nil = p->root = nil;   //트리가 빈 경우 root가 nil 노드이므로
   return p;
 }
 
