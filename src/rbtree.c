@@ -4,14 +4,14 @@
 
 rbtree *new_rbtree(void) {
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
-  node_t *nil = (node_t*)calloc(1, sizeof(node_t));
-  nil->color = RBTREE_BLACK;
-  p->nil = p->root = nil;   //트리가 빈 경우 root가 nil 노드이므로
+  node_t *NIL = (node_t*)calloc(1, sizeof(node_t));
+  NIL->color = RBTREE_BLACK;
+  p->root = p->nil = NIL;
   return p;
 }
 
+// 해당 tree가 사용했던 메모리를 전부 반환해야 합니다. (valgrind로 나타나지 않아야 함)
 void delete_rbtree(rbtree *t) {
-  // 해당 tree가 사용했던 메모리를 전부 반환해야 합니다. (valgrind로 나타나지 않아야 함)
   delete_rbtree_sub(t, t->root);    //노드들 메모리 전부 해제
   free(t->nil);                     //nil 메모리 해제 (root는 노드 메모리 해제할 때 기수행)
   free(t);                          //구조체 메모리 해제
@@ -26,11 +26,33 @@ void delete_rbtree_sub(rbtree *t, node_t *p) {
   }
 }
 
+// 구현하는 ADT가 multiset이므로 이미 같은 key의 값이 존재해도 하나 더 추가 합니다.
 node_t *rbtree_insert(rbtree *t, const key_t key) {
-  // 구현하는 ADT가 multiset이므로 이미 같은 key의 값이 존재해도 하나 더 추가 합니다.
+  node_t *x = t->root;                                  //key의 비교 대상 노드
+  node_t *y = t->nil;                                   //key의 부모 노드
+  node_t *insert = (node_t*)calloc(1, sizeof(node_t));  //삽입 노드 메모리 할당해주기
 
+  //root부터 아래로 노드 삽입 위치 찾아가기
+  while (x != t->nil) {
+    y = x;
+    if (x->key > key) x = x->left;
+    else x = x->right;
+  }
+  
+  // 위치 찾았으니 insert의 정보(key, color, parent, left, right) 초기화
+  insert->key = key;
+  insert->color = RBTREE_RED;
+  insert->left = insert->right = t->nil;
+  insert->parent = y;
 
-  return t->root;
+  // insert 위치에 따라 부모의 자식노드 업데이트 해주기
+  if (y == t->nil) t->root = insert;
+  else if (key < y->key) y->left = insert;
+  else y->right = insert;
+
+  rbtree_insert_fixup(t, insert);
+
+  return t->root;     //속성유지
 }
 
 void left_rotate(rbtree *t, node_t *curTop) {
@@ -56,7 +78,7 @@ void right_rotate(rbtree *t, node_t *curTop) {
   curTop->left = targetTop->right;                                      //targetTop의 오른쪽 서브트리를 curTop의 왼쪽 서브트리로 회전
   if (targetTop->right != t->nil) targetTop->right->parent = curTop;    //targetTop이 오른쪽 자식노드를 가지고 있다면 curTop의 왼쪽 자식으로 바꿔주기
   targetTop->parent = curTop->parent;                                   //targetTop의 부모노드 업데이트
-  
+
   if(curTop->parent == t->nil) t->root = targetTop;
   else if (curTop == curTop->parent->right) curTop->parent->right = targetTop;
   else curTop->parent->left = targetTop;
@@ -67,6 +89,7 @@ void right_rotate(rbtree *t, node_t *curTop) {
 
 void *rbtree_insert_fixup(rbtree *t, const key_t key) {
   //불균형 복구
+  
 
 }
 
