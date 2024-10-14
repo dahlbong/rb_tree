@@ -166,19 +166,68 @@ node_t *rbtree_min(const rbtree *t) {
   return cur;
 }
 
+// 노드 중 가장 큰 키 값 반환
 node_t *rbtree_max(const rbtree *t) {
-  // 노드 중 가장 큰 키 값 반환
   if (t->root == t->nil) return NULL;
   node_t *cur = t->root;
   while (cur->right != t->nil) cur = cur->right;
-  
+
   return cur;
 }
 
+// 노드 삭제
 int rbtree_erase(rbtree *t, node_t *p) {
-  // 노드 삭제
+  if (p == NULL) return 0;
+
+  node_t *del = p;
+  color_t del_originalColor = del->color;
+  node_t *handDown;
+
+  // 삭제 노드가 오른쪽 자식만 가질 경우
+  if (p->left == t->nil) {
+    handDown = p->right;
+    rbtree_transplant(t, p, p->right);
+  }
+  // 삭제 노드가 왼쪽 자식만 가질 경우
+  else if (del->right = t->nil) {
+    handDown = p->left;
+    rbtree_transplant(t, p, p->left);
+  }
+  // 삭제 노드가 양쪽 자식 모두 가질 경우
+  else {
+    del = successor(t, p->right);
+    del_originalColor = del->color;
+    handDown = del->right;
+    if (del->parent == p) handDown->parent = del;
+    else {
+      rbtree_transplant(t, del, del->right);
+      del->right = p->right;
+      del->right->parent = del;
+    }
+    rbtree_transplant(t, p, del);
+    del->left = p->left;
+    del->left->parent = del;
+    del->color = p->color;
+  }
+  if (del_originalColor == RBTREE_BLACK){
+    rbtree_erase_fixup(t, handDown);
+  }
+  free(p);
   return 0;
 }
+
+// 삭제될 노드의 서브트리를 삭제될 노드의 부모노드와 연결
+void rbtree_transplant(rbtree *t, node_t *del, node_t *son) {
+  if (del->parent == t->nil) t->root = son;                     //root일 경우
+  else if (del == del->parent->left) del->parent->left = son;   //왼쪽 자식일 경우
+  else del->parent->right = son;                                //오른쪽 자식일 경우
+}
+
+node_t *successor(rbtree *t, node_t *cur) {
+  while (cur->left != t->nil) cur = cur->left;
+  return cur;
+}
+
 
 int rbtree_to_array(const rbtree *t, key_t *arr, const size_t n) {
   // RB tree의 내용을 key 순서대로 주어진 array로 변환
