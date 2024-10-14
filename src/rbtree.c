@@ -30,7 +30,7 @@ void delete_rbtree_sub(rbtree *t, node_t *p) {
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   node_t *x = t->root;                                  //key의 비교 대상 노드
   node_t *y = t->nil;                                   //key의 부모 노드
-  node_t *insert = (node_t*)calloc(1, sizeof(node_t));  //삽입 노드 메모리 할당해주기
+  node_t *cur = (node_t*)calloc(1, sizeof(node_t));     //삽입 노드 메모리 할당해주기
 
   //root부터 아래로 노드 삽입 위치 찾아가기
   while (x != t->nil) {
@@ -39,20 +39,78 @@ node_t *rbtree_insert(rbtree *t, const key_t key) {
     else x = x->right;
   }
   
-  // 위치 찾았으니 insert의 정보(key, color, parent, left, right) 초기화
-  insert->key = key;
-  insert->color = RBTREE_RED;
-  insert->left = insert->right = t->nil;
-  insert->parent = y;
+  // 위치 찾았으니 cur의 정보(key, color, parent, left, right) 초기화
+  cur->key = key;
+  cur->color = RBTREE_RED;
+  cur->left = cur->right = t->nil;
+  cur->parent = y;
 
-  // insert 위치에 따라 부모의 자식노드 업데이트 해주기
-  if (y == t->nil) t->root = insert;
-  else if (key < y->key) y->left = insert;
-  else y->right = insert;
-
-  rbtree_insert_fixup(t, insert);
-
+  // cur 위치에 따라 부모의 자식노드 업데이트 해주기
+  if (y == t->nil) t->root = cur;
+  else if (key < y->key) y->left = cur;
+  else y->right = cur;
+  rbtree_insert_fixup(t, cur->key);
+  
   return t->root;     //속성유지
+}
+
+//불균형 복구
+void *rbtree_insert_fixup(rbtree *t, const key_t *key) {
+
+  node_t *insert = rbtree_find(t, key);
+  if (insert == NULL) return;
+  node_t *uncle;
+
+  // 부모노드가 BLACK 될때까지 반복
+  while (insert->parent->color == RBTREE_RED) {
+    // 부모노드가 조부모의 왼쪽 자식일 때
+    if (insert->parent == insert->parent->parent->left) {
+      uncle = insert->parent->parent->right;
+
+      // case 1: 삽입노드의 삼촌 노드가 RED  => 부모 레벨의 색과 조부모의 색 스왑
+      if (uncle->color == RBTREE_RED) {
+        insert->parent->color = RBTREE_BLACK;
+        uncle->color = RBTREE_BLACK;
+        insert->parent->parent->color = RBTREE_RED;
+        insert = insert->parent->parent;
+      }
+      // case 2: 삼촌노드가 BLACK이고 삽입노드가 오른쪽 자식일 때 => 회전
+      else {
+        if (insert == insert->parent->right) {
+          insert = insert->parent;
+          left_rotate(t, insert);
+        }
+        // case 3: 삼촌노드가 BLACK이고 삽입노드가 왼쪽 자식일 때 => 부모와 조부모 색 스왑 후 회전
+        insert->parent->color = RBTREE_BLACK;
+        insert->parent->parent->color = RBTREE_RED;
+        right_rotate(t, insert->parent->parent);
+      }
+    }
+
+    // 부모노드가 조부모의 왼쪽 자식일 때
+    else {
+      uncle = insert->parent->parent->left;
+      // case 1: 삽입노드의 삼촌 노드가 RED  => 부모 레벨의 색과 조부모의 색 스왑
+      if (uncle->color == RBTREE_RED) {
+        insert->parent->color = RBTREE_BLACK;
+        uncle->color = RBTREE_BLACK;
+        insert->parent->parent->color = RBTREE_RED;
+        insert = insert->parent->parent;
+      }
+      // case 2: 삼촌노드가 BLACK이고 삽입노드가 오른쪽 자식일 때 => 회전
+      else {
+        if (insert == insert->parent->left) {
+          insert = insert->parent;
+          right_rotate(t, insert);
+        }
+        // case 3: 삼촌노드가 BLACK이고 삽입노드가 왼쪽 자식일 때 => 부모와 조부모 색 스왑 후 회전
+        insert->parent->color = RBTREE_BLACK;
+        insert->parent->parent->color = RBTREE_RED;
+        left_rotate(t, insert->parent->parent);        
+      }
+    }
+  }
+  t->root->color = RBTREE_BLACK;
 }
 
 void left_rotate(rbtree *t, node_t *curTop) {
@@ -87,14 +145,17 @@ void right_rotate(rbtree *t, node_t *curTop) {
   curTop->parent = targetTop;
 }
 
-void *rbtree_insert_fixup(rbtree *t, const key_t key) {
-  //불균형 복구
-  
-
-}
-
 node_t *rbtree_find(const rbtree *t, const key_t key) {
   // RB tree내에 해당 key가 있는지 탐색하여 있으면 해당 node pointer 반환, 없으면 NULL 반환
+  node_t * cur = t->root;
+
+  while (cur != t->nil) {
+    if (cur->key == key)
+      return cur;
+
+    if (cur->key < key) cur = cur->right;
+    else cur = cur->left;
+  }
 
   return t->root;
 }

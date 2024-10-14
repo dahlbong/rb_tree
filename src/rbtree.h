@@ -20,8 +20,13 @@ typedef struct {
 
 rbtree *new_rbtree(void);
 void delete_rbtree(rbtree *);
+void delete_rbtree_sub(rbtree *, node_t *);
 
 node_t *rbtree_insert(rbtree *, const key_t);
+void *rbtree_insert_fixup(rbtree *, const key_t *);
+void left_rotate(rbtree *, node_t *);
+void right_rotate(rbtree *, node_t *);
+
 node_t *rbtree_find(const rbtree *, const key_t);
 node_t *rbtree_min(const rbtree *);
 node_t *rbtree_max(const rbtree *);
