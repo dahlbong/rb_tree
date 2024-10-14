@@ -110,6 +110,7 @@ void *rbtree_insert_fixup(rbtree *t, const key_t key) {
     }
   }
   t->root->color = RBTREE_BLACK;
+  return 0;     // 이거 왜필요함? => 리턴형이 void 포인터인데 굳이 리턴값없어도 ㄱㅊ으니까 0 그냥 넣어줌
 }
 
 void left_rotate(rbtree *t, node_t *curTop) {
@@ -156,14 +157,22 @@ node_t *rbtree_find(const rbtree *t, const key_t key) {
   return NULL;
 }
 
+// 노드 중 가장 작은 키 값 반환
 node_t *rbtree_min(const rbtree *t) {
-  // 노드 중 가장 작은 키 값 반환
-  return t->root;
+  if (t->root == t->nil) return NULL;
+  node_t *cur = t->root;
+  while (cur->left != t->nil) cur = cur->left;
+  
+  return cur;
 }
 
 node_t *rbtree_max(const rbtree *t) {
   // 노드 중 가장 큰 키 값 반환
-  return t->root;
+  if (t->root == t->nil) return NULL;
+  node_t *cur = t->root;
+  while (cur->right != t->nil) cur = cur->right;
+  
+  return cur;
 }
 
 int rbtree_erase(rbtree *t, node_t *p) {
