@@ -262,6 +262,7 @@ void test_color_constraint(const rbtree *t) {
   assert(p == nil || p->color == RBTREE_BLACK);
 
   init_color_traverse();
+  // print_rbtree(t, t->root, 0, ' ');
   assert(color_traverse(p, RBTREE_BLACK, 0, nil));
 }
 
@@ -376,8 +377,9 @@ int main(void) {
   test_minmax_suite();
   test_to_array_suite();
   test_distinct_values();
-  test_duplicate_values();
+  test_duplicate_values(); 
   test_multi_instance();
   test_find_erase_rand(10000, 17);
   printf("Passed all tests!\n");
 }
+
